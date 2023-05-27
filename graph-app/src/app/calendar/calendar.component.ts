@@ -11,6 +11,7 @@ import * as MicrosoftGraph from '@microsoft/microsoft-graph-types';
 import { AuthService } from '../auth.service';
 import { GraphService } from '../graph.service';
 import { AlertsService } from '../alerts.service';
+import endOfMonth from 'date-fns/endOfMonth';
 
 @Component({
   selector: 'app-calendar',
@@ -37,13 +38,35 @@ export class CalendarComponent implements OnInit {
     // 07:00:00Z
     const now = new Date();
     const weekStart = zonedTimeToUtc(startOfWeek(now), timeZone);
-    const weekEnd = zonedTimeToUtc(endOfWeek(now), timeZone);
+    const weekEnd = zonedTimeToUtc(endOfMonth(now), timeZone);
+
+    // weekEnd.setDate(weekEnd.getDate() + 7);
 
     this.events = await this.graphService.getCalendarView(
       weekStart.toISOString(),
       weekEnd.toISOString(),
       this.authService.user?.timeZone ?? 'UTC'
     );
+  }
+
+  async removeEvent(event: MicrosoftGraph.Event) {
+      if (!this.authService.graphClient) {
+          this.alertsService.addError('Graph client is not initialized.');
+          return undefined;
+      }
+      try {
+          await this.authService.graphClient
+              .api(`/me/events/${event.id}`)
+              .delete();
+            this.events = this.events?.filter((e) => e.id !== event.id);
+            return undefined;
+      } catch (error) {
+          this.alertsService.addError(
+              'Could not delete event',
+              JSON.stringify(error, null, 2)
+          );
+          return undefined;
+      }
   }
 
   formatDateTimeTimeZone(
