@@ -9,9 +9,7 @@ import { AuthService } from './auth.service';
     providedIn: 'root',
 })
 export class GraphService {
-    constructor(
-        private authService: AuthService,
-    ) { }
+    constructor(private authService: AuthService) {}
 
     // This is a hardcoded event creation function that is used for testing purposes
     async createTestEvent(): Promise<void> {
@@ -21,19 +19,21 @@ export class GraphService {
         }
 
         const testEvent = {
-            subject: 'Let\'s go for lunch',
+            subject: "Let's go for lunch",
             start: {
                 dateTime: '2023-06-14T12:00:00',
-                timeZone: 'Eastern Standard Time'
+                timeZone: 'Eastern Standard Time',
             },
             end: {
                 dateTime: '2023-06-14T14:00:00',
-                timeZone: 'Eastern Standard Time'
+                timeZone: 'Eastern Standard Time',
             },
         };
 
         try {
-            await this.authService.graphClient.api('/me/events').post(testEvent);
+            await this.authService.graphClient
+                .api('/me/events')
+                .post(testEvent);
         } catch (error) {
             throw Error(JSON.stringify(error, null, 2));
         }

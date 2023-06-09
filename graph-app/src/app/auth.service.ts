@@ -24,9 +24,7 @@ export class AuthService {
     public user?: User;
     public graphClient?: Client;
 
-    constructor(
-        private msalService: MsalService,
-    ) {
+    constructor(private msalService: MsalService) {
         const accounts = this.msalService.instance.getAllAccounts();
         this.authenticated = accounts.length > 0;
         if (this.authenticated) {
