@@ -2,68 +2,40 @@
 // Licensed under the MIT License.
 
 import { Injectable } from '@angular/core';
-import * as MicrosoftGraph from '@microsoft/microsoft-graph-types';
 
 import { AuthService } from './auth.service';
-import { AlertsService } from './alerts.service';
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root',
 })
 export class GraphService {
-  constructor(
-    private authService: AuthService,
-    private alertsService: AlertsService
-  ) {}
+    constructor(
+        private authService: AuthService,
+    ) { }
 
-  async getCalendarView(
-    start: string,
-    end: string,
-    timeZone: string
-  ): Promise<MicrosoftGraph.Event[] | undefined> {
-    if (!this.authService.graphClient) {
-      this.alertsService.addError('Graph client is not initialized.');
-      return undefined;
+    // This is a hardcoded event creation function that is used for testing purposes
+    async createTestEvent(): Promise<void> {
+        if (!this.authService.graphClient) {
+            console.log("Can't create event, no graph client");
+            return undefined;
+        }
+
+        const testEvent = {
+            subject: 'Let\'s go for lunch',
+            start: {
+                dateTime: '2023-06-14T12:00:00',
+                timeZone: 'Eastern Standard Time'
+            },
+            end: {
+                dateTime: '2023-06-14T14:00:00',
+                timeZone: 'Eastern Standard Time'
+            },
+        };
+
+        try {
+            await this.authService.graphClient.api('/me/events').post(testEvent);
+        } catch (error) {
+            throw Error(JSON.stringify(error, null, 2));
+        }
     }
-
-    try {
-      // GET /me/calendarview?startDateTime=''&endDateTime=''
-      // &$select=subject,organizer,start,end
-      // &$orderby=start/dateTime
-      // &$top=50
-      const result = await this.authService.graphClient
-        .api('/me/calendarview')
-        .header('Prefer', `outlook.timezone="${timeZone}"`)
-        .query({
-          startDateTime: start,
-          endDateTime: end,
-        })
-        .select('subject,organizer,start,end')
-        .orderby('start/dateTime')
-        .top(50)
-        .get();
-
-      return result.value;
-    } catch (error) {
-      this.alertsService.addError(
-        'Could not get events',
-        JSON.stringify(error, null, 2)
-      );
-    }
-    return undefined;
-  }
-
-  async addEventToCalendar(newEvent: MicrosoftGraph.Event): Promise<void> {
-    if (!this.authService.graphClient) {
-      this.alertsService.addError('Graph client is not initialized.');
-      return undefined;
-    }
-
-    try {
-      // POST /me/events
-      await this.authService.graphClient.api('/me/events').post(newEvent);
-    } catch (error) {
-      throw Error(JSON.stringify(error, null, 2));
-    }
-  }
 }

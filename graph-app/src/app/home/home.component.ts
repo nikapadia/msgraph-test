@@ -6,6 +6,7 @@ import { AuthenticationResult } from '@azure/msal-browser';
 
 import { AuthService } from '../auth.service';
 import { User } from '../user';
+import { GraphService } from '../graph.service';
 
 @Component({
   selector: 'app-home',
@@ -22,7 +23,7 @@ export class HomeComponent implements OnInit {
     return this.authService.user;
   }
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private graphService: GraphService) {}
 
   ngOnInit() {
     // Necessary to handle logout redirect properly
@@ -34,8 +35,14 @@ export class HomeComponent implements OnInit {
       },
     });
   }
-
+  
+  // Necessary
   async signIn(): Promise<void> {
     await this.authService.signIn();
+  }
+
+  // Runs a test event creation function in graph.service.ts
+  async testEvent(): Promise<void> {
+    await this.graphService.createTestEvent();
   }
 }
